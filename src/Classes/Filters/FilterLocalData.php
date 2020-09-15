@@ -13,9 +13,17 @@ class FilterLocalData
                 foreach ($localColumns as $key => $column) {
                     if (isset($column[$searchTerm])) {
                         if ($key === key($localColumns)) {
-                            $query->where("$key", 'like', "%$searchValue%");
+                            if (isset($localColumns[$key]['search'])) {
+                                $query->where(\DB::raw("CONCAT" . $localColumns[$key]['search']), 'LIKE', "%" . $searchValue . "%");
+                            } else {
+                                $query->where("$key", 'like', "%$searchValue%");
+                            }
                         } else {
-                            $query->orWhere("$key", 'like', "%$searchValue%");
+                            if (isset($localColumns[$key]['search'])) {
+                                $query->orWhere(\DB::raw("CONCAT" . $localColumns[$key]['search']), 'LIKE', "%" . $searchValue . "%");
+                            } else {
+                                $query->orWhere("$key", 'like', "%$searchValue%");
+                            }
                         }
                     }
                 }
