@@ -3,27 +3,28 @@
 namespace JamesDordoy\LaravelVueDatatable\Classes;
 
 //Casts
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-//Contracts
-use JamesDordoy\LaravelVueDatatable\Contracts\QueryBuilderContract;
-//Factories
+use Illuminate\Database\Eloquent\Model;
 use JamesDordoy\LaravelVueDatatable\Classes\Factories\RelationshipModelFactory;
-//Filters
-use JamesDordoy\LaravelVueDatatable\Classes\Filters\FilterLocalData;
-use JamesDordoy\LaravelVueDatatable\Classes\Filters\FilterHasManyRelationships;
-use JamesDordoy\LaravelVueDatatable\Classes\Filters\FilterBelongsToRelationships;
 use JamesDordoy\LaravelVueDatatable\Classes\Filters\FilterBelongsToManyRelationships;
-//Joins
-use JamesDordoy\LaravelVueDatatable\Classes\Joins\JoinHasManyRelationships;
-use JamesDordoy\LaravelVueDatatable\Classes\Joins\JoinBelongsToRelationships;
+use JamesDordoy\LaravelVueDatatable\Classes\Filters\FilterBelongsToRelationships;
+use JamesDordoy\LaravelVueDatatable\Classes\Filters\FilterHasManyRelationships;
+use JamesDordoy\LaravelVueDatatable\Classes\Filters\FilterLocalData;
 use JamesDordoy\LaravelVueDatatable\Classes\Joins\JoinBelongsToManyRelationships;
-//Relationships
-use JamesDordoy\LaravelVueDatatable\Classes\Relationships\GetHasManyRelationships;
-use JamesDordoy\LaravelVueDatatable\Classes\Relationships\GetBelongsToRelationships;
+use JamesDordoy\LaravelVueDatatable\Classes\Joins\JoinBelongsToRelationships;
+use JamesDordoy\LaravelVueDatatable\Classes\Joins\JoinHasManyRelationships;
 use JamesDordoy\LaravelVueDatatable\Classes\Relationships\GetBelongsToManyRelationships;
-//Exceptions
+use JamesDordoy\LaravelVueDatatable\Classes\Relationships\GetBelongsToRelationships;
+use JamesDordoy\LaravelVueDatatable\Classes\Relationships\GetHasManyRelationships;
+use JamesDordoy\LaravelVueDatatable\Contracts\QueryBuilderContract;
 use JamesDordoy\LaravelVueDatatable\Exceptions\RelationshipForeignKeyNotSetException;
+
+//Contracts
+//Factories
+//Filters
+//Joins
+//Relationships
+//Exceptions
 
 class QueryBuilder implements QueryBuilderContract
 {
@@ -63,7 +64,7 @@ class QueryBuilder implements QueryBuilderContract
             $this->query = $this->query->select($columnKeys);
         }
 
-        $this->query->groupBy($this->model->getTable().".".$this->model->getKeyName());
+        $this->query->groupBy($this->model->getKeyName());
 
         return $this;
     }
@@ -71,15 +72,15 @@ class QueryBuilder implements QueryBuilderContract
     public function orderBy($orderBy, $orderByDir = "asc")
     {
         $orderByDir = isset($orderByDir) ? $orderByDir : 'asc';
-        
-        if (isset($orderBy) && ! empty($orderBy)) {
+
+        if (isset($orderBy) && !empty($orderBy)) {
             $defaultOrderBy = config('laravel-vue-datatables.models.order_term');
-            $tableAndColumn = count(explode(".", $orderBy)) > 1 ? $orderBy : $this->model->getTable().".$orderBy";
+            $tableAndColumn = count(explode(".", $orderBy)) > 1 ? $orderBy : "$orderBy";
             $this->query->orderBy($tableAndColumn, $orderByDir);
         } else {
             $defaultOrderBy = config('laravel-vue-datatables.default_order_by');
             $defaultOrderBy = is_null($defaultOrderBy) ? 'id' : $defaultOrderBy;
-            $this->query->orderBy($this->model->getTable().".$defaultOrderBy", $orderByDir);
+            $this->query->orderBy("$defaultOrderBy", $orderByDir);
         }
 
         return $this;
@@ -101,12 +102,11 @@ class QueryBuilder implements QueryBuilderContract
         }
 
         return $this;
-    }                   
+    }
 
     public function filter($searchValue)
     {
-        if (isset($searchValue) && ! empty($searchValue)) {
-
+        if (isset($searchValue) && !empty($searchValue)) {
             $filterLocalData = new FilterLocalData;
             $this->query = $filterLocalData($this->query, $searchValue, $this->model, $this->localColumns);
 
@@ -118,7 +118,7 @@ class QueryBuilder implements QueryBuilderContract
 
             $filterBelongsToMany = new FilterBelongsToManyRelationships;
             $this->query = $filterBelongsToMany($this->query, $searchValue, $this->relationshipModelFactory, $this->model, $this->relationships);
-        
+
             return $this;
         }
 
@@ -127,17 +127,16 @@ class QueryBuilder implements QueryBuilderContract
 
     protected function selectModelColumns()
     {
-        if (isset($this->localColumns) && ! empty($this->localColumns)) {
-
+        if (isset($this->localColumns) && !empty($this->localColumns)) {
             $columnKeys = array_keys($this->localColumns);
 
             foreach ($columnKeys as $index => $key) {
-                $columnKeys[$index] = $this->model->getTable().".$key";
+                $columnKeys[$index] = "$key";
             }
 
             return $columnKeys;
         }
-        
+
         return [];
     }
 
@@ -145,13 +144,13 @@ class QueryBuilder implements QueryBuilderContract
     {
         if (isset($this->relationships['belongsTo'])) {
             foreach ($this->relationships['belongsTo'] as $tableName => $options) {
-                if (! isset($options['foreign_key'])) {
+                if (!isset($options['foreign_key'])) {
                     throw new RelationshipForeignKeyNotSetException(
                         "Foreign Key not set on relationship: $tableName"
                     );
                 }
 
-                $columnKeys[count($columnKeys) + 1] = $this->model->getTable().".".$options['foreign_key'];
+                $columnKeys[count($columnKeys) + 1] = $options['foreign_key'];
             }
         }
 
