@@ -9,19 +9,19 @@ class FilterLocalData
         $searchTerm = config('laravel-vue-datatables.models.search_term');
 
         if (isset($localColumns)) {
-            return $query->where(function($query) use ($searchValue, $searchTerm, $model, $localColumns) {
+            return $query->where(function ($query) use ($searchValue, $searchTerm, $model, $localColumns) {
                 foreach ($localColumns as $key => $column) {
                     if (isset($column[$searchTerm])) {
                         if ($key === key($localColumns)) {
-                            $query->where($model->getTable() . ".$key", 'like', "%$searchValue%");
+                            $query->where("$key", 'like', "%$searchValue%");
                         } else {
-                            $query->orWhere($model->getTable() . ".$key", 'like', "%$searchValue%");
+                            $query->orWhere("$key", 'like', "%$searchValue%");
                         }
                     }
                 }
             });
         }
-        
+
         return $query;
     }
 }
