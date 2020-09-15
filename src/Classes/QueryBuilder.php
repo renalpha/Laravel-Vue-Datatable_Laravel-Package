@@ -129,9 +129,11 @@ class QueryBuilder implements QueryBuilderContract
     {
         if (isset($this->localColumns) && !empty($this->localColumns)) {
             $columnKeys = array_keys($this->localColumns);
-
             foreach ($columnKeys as $index => $key) {
                 $columnKeys[$index] = "$key";
+                if(isset($this->localColumns[$key]['concat'])){
+                    $columnKeys[$index] = \DB::raw("CONCAT".$this->localColumns[$key]['concat']);
+                }
             }
 
             return $columnKeys;
