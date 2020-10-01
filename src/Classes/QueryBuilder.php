@@ -129,15 +129,19 @@ class QueryBuilder implements QueryBuilderContract
 
         return $this;
     }
-
+    
     protected function selectModelColumns()
     {
         if (isset($this->localColumns) && !empty($this->localColumns)) {
             $columnKeys = array_keys($this->localColumns);
             foreach ($columnKeys as $index => $key) {
                 $columnKeys[$index] = "$key";
-                if(isset($this->localColumns[$key]['concat'])){
-                    $columnKeys[$index] = \DB::raw("CONCAT".$this->localColumns[$key]['concat']);
+                if (isset($this->localColumns[$key]['concat'])) {
+                    $columnKeys[$index] = \DB::raw("CONCAT" . $this->localColumns[$key]['concat']);
+                }
+
+                if (isset($this->localColumns[$key]['as'])) {
+                    $columnKeys[$index] = $key .' as '. $this->localColumns[$key]['as'];
                 }
             }
 
