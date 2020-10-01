@@ -71,6 +71,11 @@ class QueryBuilder implements QueryBuilderContract
 
     public function orderBy($orderBy, $orderByDir = "asc")
     {
+        // Set default
+        if ($orderBy === 'id') {
+            $orderBy = $this->model->getTable() . '.id';
+        }
+
         $orderByDir = isset($orderByDir) ? $orderByDir : 'asc';
 
         if (isset($orderBy) && !empty($orderBy)) {
